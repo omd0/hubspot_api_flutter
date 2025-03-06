@@ -1,0 +1,155 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class DeliveryIdentifier {
+  final String type;
+  final String value;
+
+  DeliveryIdentifier({
+    required this.type,
+    required this.value,
+  });
+
+  factory DeliveryIdentifier.fromJson(Map<String, dynamic> json) {
+    return DeliveryIdentifier(
+      type: json['type'],
+      value: json['value'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type,
+      'value': value,
+    };
+  }
+}
+
+class ChannelAccount {
+  final String createdAt;
+  final String archivedAt;
+  final bool archived;
+  final bool authorized;
+  final String name;
+  final bool active;
+  final DeliveryIdentifier deliveryIdentifier;
+  final String id;
+  final String inboxId;
+  final String channelId;
+
+  ChannelAccount({
+    required this.createdAt,
+    required this.archivedAt,
+    required this.archived,
+    required this.authorized,
+    required this.name,
+    required this.active,
+    required this.deliveryIdentifier,
+    required this.id,
+    required this.inboxId,
+    required this.channelId,
+  });
+
+  factory ChannelAccount.fromJson(Map<String, dynamic> json) {
+    return ChannelAccount(
+      createdAt: json['createdAt'],
+      archivedAt: json['archivedAt'],
+      archived: json['archived'],
+      authorized: json['authorized'],
+      name: json['name'],
+      active: json['active'],
+      deliveryIdentifier:
+          DeliveryIdentifier.fromJson(json['deliveryIdentifier']),
+      id: json['id'],
+      inboxId: json['inboxId'],
+      channelId: json['channelId'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'createdAt': createdAt,
+      'archivedAt': archivedAt,
+      'archived': archived,
+      'authorized': authorized,
+      'name': name,
+      'active': active,
+      'deliveryIdentifier': deliveryIdentifier.toJson(),
+      'id': id,
+      'inboxId': inboxId,
+      'channelId': channelId,
+    };
+  }
+}
+
+
+
+class ChannelAccountList {
+  final int total;
+  final Paging paging;
+  final List<ChannelAccount> results;
+
+  ChannelAccountList({
+    required this.total,
+    required this.paging,
+    required this.results,
+  });
+
+  factory ChannelAccountList.fromJson(Map<String, dynamic> json) {
+    return ChannelAccountList(
+      total: json['total'],
+      paging: Paging.fromJson(json['paging']?['next']),
+      results: (json['results'] as List)
+          .map((accountJson) => ChannelAccount.fromJson(accountJson))
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'total': total,
+      'paging': {'next': paging.toJson()},
+      'results': results.map((account) => account.toJson()).toList(),
+    };
+  }
+}
+
+Future<ChannelAccountList?> getChannelAccounts(String accessToken) async {
+  final url = Uri.https(
+    'api.hubapi.com',
+    '/conversations/v3/conversations/channel-accounts',
+  );
+
+  final headers = {
+    'accept': 'application/json',
+    'authorization': 'Bearer $accessToken',
+  };
+
+  try {
+    final response = await http.get(url, headers: headers);
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> jsonData = json.decode(response.body);
+      return ChannelAccountList.fromJson(jsonData);
+    } else {
+      print(
+          'Failed to get channel accounts: ${response.statusCode}, ${response.body}');
+      return null;
+    }
+  } catch (e) {
+    print('Error getting channel accounts: $e');
+    return null;
+  }
+}
+
+void main() async {
+  final accessToken = 'YOUR_ACCESS_TOKEN';
+
+  final channelAccounts = await getChannelAccounts(accessToken);
+
+  if (channelAccounts != null) {
+    print('Channel Accounts: ${channelAccounts.toJson()}');
+  } else {
+    print('Failed to retrieve channel accounts.');
+  }
+}

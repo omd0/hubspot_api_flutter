@@ -1,0 +1,126 @@
+import 'dart:convert';
+import 'actors.dis';
+import 'package:http/http.dart' as http;
+
+class Actor {
+  final String type;
+  final String id;
+  final String name;
+  final String email;
+  final String avatar;
+
+  Actor({
+    required this.type,
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.avatar,
+  });
+
+  factory Actor.fromJson(Map<String, dynamic> json) {
+    return Actor(
+      type: json['type'],
+      id: json['id'],
+      name: json['name'],
+      email: json['email'],
+      avatar: json['avatar'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type,
+      'id': id,
+      'name': name,
+      'email': email,
+      'avatar': avatar,
+    };
+  }
+}
+
+// class BatchReadResponse {
+//   final String completedAt;
+//   final String requestedAt;
+//   final String startedAt;
+//   final Map<String, String> links;
+//   final List<Actor> results;
+//   final String status;
+
+//   BatchReadResponse({
+//     required this.completedAt,
+//     required this.requestedAt,
+//     required this.startedAt,
+//     required this.links,
+//     required this.results,
+//     required this.status,
+//   });
+
+//   factory BatchReadResponse.fromJson(Map<String, dynamic> json) {
+//     return BatchReadResponse(
+//       completedAt: json['completedAt'],
+//       requestedAt: json['requestedAt'],
+//       startedAt: json['startedAt'],
+//       links: Map<String, String>.from(json['links']),
+//       results: (json['results'] as List)
+//           .map((actorJson) => Actor.fromJson(actorJson))
+//           .toList(),
+//       status: json['status'],
+//     );
+//   }
+
+//   Map<String, dynamic> toJson() {
+//     return {
+//       'completedAt': completedAt,
+//       'requestedAt': requestedAt,
+//       'startedAt': startedAt,
+//       'links': links,
+//       'results': results.map((actor) => actor.toJson()).toList(),
+//       'status': status,
+//     };
+//   }
+// }
+
+// Future<BatchReadResponse?> batchReadActors(
+//     String accessToken, List<String> actorIds) async {
+//   final url = Uri.https(
+//     'api.hubapi.com',
+//     '/conversations/v3/conversations/actors/batch/read',
+//   );
+
+//   final headers = {
+//     'accept': 'application/json',
+//     'content-type': 'application/json',
+//     'authorization': 'Bearer $accessToken',
+//   };
+
+//   final body = json.encode({'inputs': actorIds});
+
+//   try {
+//     final response = await http.post(url, headers: headers, body: body);
+
+//     if (response.statusCode == 200) {
+//       final Map<String, dynamic> jsonData = json.decode(response.body);
+//       return BatchReadResponse.fromJson(jsonData);
+//     } else {
+//       print(
+//           'Failed to batch read actors: ${response.statusCode}, ${response.body}');
+//       return null;
+//     }
+//   } catch (e) {
+//     print('Error batch reading actors: $e');
+//     return null;
+//   }
+// }
+
+void main() async {
+  final accessToken = 'YOUR_ACCESS_TOKEN';
+  final actorIds = ['actorId1', 'actorId2'];
+
+  final batchReadResponse = await batchReadActors(accessToken, actorIds);
+
+  if (batchReadResponse != null) {
+    print('Batch Read Response: ${batchReadResponse.toJson()}');
+  } else {
+    print('Failed to batch read actors.');
+  }
+}
